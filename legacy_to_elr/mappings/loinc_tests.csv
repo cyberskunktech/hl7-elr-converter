@@ -1,0 +1,6 @@
+loinc_code,long_name,default_specimen,verified_source
+13950-1,Hepatitis A virus IgM Ab [Presence] in Serum or Plasma by Immunoassay,119364003,https://loinc.org/LG32762-3
+35276-5,Measles virus IgM Ab [Presence] in Serum by Immunoassay,119364003,https://cdn.loinc.org/35276-5
+43913-3,Bordetella pertussis DNA [Presence] in Nasopharynx by NAA with probe detection,258500001,https://loinc.org/43913-3
+97313-1,Salmonella sp DNA [Presence] in Stool by NAA with probe detection,119339001,https://loinc.org/97313-1
+97312-3,Campylobacter coli+jejuni+upsaliensis DNA [Presence] in Stool by NAA with probe detection,119339001,https://conference.loinc.org/92695-6

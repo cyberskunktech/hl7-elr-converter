@@ -1,0 +1,4 @@
+source_id,name,file,delimiter,clia,oid,street,city,zip,phone_area,phone_number
+CHL,Central Hospital Laboratory,chl_lab_export.csv,",",99D0000001,2.16.840.1.113883.19.4.11,100 Hospital Way,Northgate,00001,555,5550101
+RVC,Riverside Family Health & Wellness Clinic,riverside_clinic_export.csv,",",99D0000002,2.16.840.1.113883.19.4.12,25 River Road,Riverside,00002,555,5550102
+RRL,Regional Reference Laboratory,rrl_legacy_extract.txt,|,99D0000003,2.16.840.1.113883.19.4.13,9 Lab Park Drive,Eastfield,00003,555,5550103

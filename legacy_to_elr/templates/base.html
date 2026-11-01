@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Lab Reporting Desk{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="masthead">
+    <div class="wrap masthead-row">
+      <a class="wordmark" href="{{ url_for('home') }}">Lab Reporting Desk</a>
+      <nav aria-label="Main">
+        <a href="{{ url_for('home') }}"{% if request.endpoint in ['home', 'show_run', 'show_message'] %} aria-current="page"{% endif %}>Conversions</a>
+        <a href="{{ url_for('mappings') }}"{% if request.endpoint == 'mappings' %} aria-current="page"{% endif %}>Mappings</a>
+      </nav>
+    </div>
+    <p class="notice"><span class="wrap">Prototype with synthetic data only. Do not upload real patient information.</span></p>
+  </header>
+  <main id="main" class="wrap">
+    {% if not inline_flash %}{% include "_flashes.html" %}{% endif %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

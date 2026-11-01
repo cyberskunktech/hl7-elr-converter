@@ -1,0 +1,13 @@
+source_id,local_test,loinc_code
+CHL,havm,13950-1
+CHL,measm,35276-5
+CHL,bppcr,43913-3
+CHL,salpcr,97313-1
+CHL,campcr,97312-3
+RVC,hep a igm,13950-1
+RVC,measles igm,35276-5
+RVC,pertussis pcr,43913-3
+RRL,hav.igm,13950-1
+RRL,b.pert.pcr,43913-3
+RRL,salm.pcr,97313-1
+RRL,campy.pcr,97312-3

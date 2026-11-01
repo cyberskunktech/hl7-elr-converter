@@ -1,0 +1,5 @@
+{% with flashes = get_flashed_messages(with_categories=true) %}
+  {% for category, text in flashes %}
+    <p class="flash flash-{{ category }}" role="{{ 'alert' if category == 'error' else 'status' }}">{{ text }}</p>
+  {% endfor %}
+{% endwith %}

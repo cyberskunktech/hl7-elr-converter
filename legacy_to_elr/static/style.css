@@ -1,0 +1,241 @@
+/*
+  Lab Reporting Desk
+  Palette: cool lab-bench white and requisition-form blue, with status colors
+  taken from specimen tube caps. Every status also has a text label, so
+  color is never the only signal.
+  Type: a DIN-style face for headings and counts (DIN is the labeling and
+  signage standard), the system UI face for reading, a monospace face only
+  for actual HL7 content and codes. All fonts are already on the computer;
+  nothing is downloaded.
+*/
+:root {
+  --paper: #F4F7F8;
+  --surface: #FFFFFF;
+  --ink: #17232D;
+  --muted: #53606B;
+  --rule: #D2DAE0;
+  --action: #1F4E79;
+  --action-ink: #FFFFFF;
+  --focus: #E0A800;
+  --notice: #E8EEF2;
+
+  --sent: #2E7D4F;
+  --needs_mapping: #946A00;
+  --rejected: #B3261E;
+  --duplicate: #66717C;
+  --not_reportable: #3A6EA5;
+  --failed_validation: #77409A;
+
+  --font-display: "Bahnschrift", "DIN Alternate", "DIN 2014", "Avenir Next Condensed", "Arial Narrow", sans-serif;
+  --font-body: "Segoe UI", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "Cascadia Mono", Consolas, "SF Mono", Menlo, monospace;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #10171D;
+    --surface: #17212A;
+    --ink: #E3E9EE;
+    --muted: #9CA9B4;
+    --rule: #2B3844;
+    --action: #8DB8E3;
+    --action-ink: #0D1922;
+    --focus: #F2C233;
+    --notice: #1C2833;
+
+    --sent: #5FB383;
+    --needs_mapping: #D9AA3D;
+    --rejected: #EF7268;
+    --duplicate: #9AA5AF;
+    --not_reportable: #7AA8DA;
+    --failed_validation: #B88DD8;
+    color-scheme: dark;
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { font-size: 100%; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+.wrap { display: block; max-width: 66rem; margin: 0 auto; padding: 0 1.25rem; }
+main.wrap { padding-bottom: 4rem; }
+
+a { color: var(--action); text-underline-offset: 0.15em; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+.skip { position: absolute; left: -999px; }
+.skip:focus { left: 1rem; top: 1rem; background: var(--surface); padding: 0.5rem 1rem; z-index: 10; }
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+/* Masthead ------------------------------------------------------------- */
+.masthead { background: var(--surface); border-bottom: 1px solid var(--rule); }
+.masthead-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-height: 3.75rem; flex-wrap: wrap; }
+.wordmark {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.3rem;
+  letter-spacing: 0.01em;
+  color: var(--ink);
+  text-decoration: none;
+  display: inline-flex; align-items: center; gap: 0.6rem;
+}
+/* three tube caps, echoing the outcome rack */
+.wordmark::before {
+  content: "";
+  width: 1.5rem; height: 0.7rem; border-radius: 2px;
+  background: linear-gradient(90deg, var(--sent) 0 33%, var(--needs_mapping) 33% 66%, var(--rejected) 66%);
+}
+nav { display: flex; gap: 1.5rem; }
+nav a { color: var(--muted); text-decoration: none; font-weight: 600; padding: 0.25rem 0; border-bottom: 2px solid transparent; }
+nav a:hover { color: var(--ink); }
+nav a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--action); }
+
+.notice { margin: 0; max-width: none; background: var(--notice); font-size: 0.875rem; padding: 0.45rem 0; color: var(--ink); }
+.notice .wrap { border-left: 4px solid var(--needs_mapping); padding-left: 0.75rem; }
+
+/* Type ----------------------------------------------------------------- */
+h1, h2, h3 { font-family: var(--font-display); font-weight: 600; line-height: 1.2; letter-spacing: 0.005em; }
+h1 { font-size: 2.25rem; margin: 2.25rem 0 0.5rem; }
+h2 { font-size: 1.5rem; margin: 2.75rem 0 0.75rem; padding-top: 1.25rem; border-top: 1px solid var(--rule); }
+h3 { font-size: 1.15rem; margin: 0 0 0.5rem; }
+p { max-width: 42rem; }
+.lede { font-size: 1.1rem; color: var(--muted); }
+.meta, .crumb, .hint, .rows-total { color: var(--muted); }
+.crumb { margin: 1.5rem 0 0; font-size: 0.95rem; }
+.hint { font-size: 0.9rem; }
+.empty { color: var(--muted); font-style: italic; }
+code { font-family: var(--font-mono); font-size: 0.9em; }
+
+/* Flash messages ------------------------------------------------------- */
+.flash { margin: 1.25rem 0 0; padding: 0.75rem 1rem; border-left: 4px solid; background: var(--surface); max-width: none; }
+.flash-success { border-color: var(--sent); }
+.flash-error { border-color: var(--rejected); }
+
+/* Forms ---------------------------------------------------------------- */
+.intake-form {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+  max-width: 42rem;
+  display: grid; gap: 1.25rem;
+}
+.field { display: grid; gap: 0.4rem; border: 0; margin: 0; padding: 0; }
+.field label, .field legend { font-weight: 600; padding: 0; }
+.choice { font-weight: 400 !important; display: flex; gap: 0.5rem; align-items: center; }
+select, input[type="file"] { font: inherit; color: inherit; }
+select {
+  background: var(--surface); border: 1px solid var(--rule); border-radius: 4px;
+  padding: 0.45rem 0.6rem; max-width: 100%;
+}
+
+button, .button {
+  font: inherit; font-weight: 600;
+  display: inline-block;
+  padding: 0.55rem 1rem;
+  border-radius: 4px;
+  border: 1px solid var(--action);
+  background: transparent;
+  color: var(--action);
+  cursor: pointer;
+  text-decoration: none;
+}
+button:hover, .button:hover { background: var(--notice); }
+.primary, .button.primary { background: var(--action); color: var(--action-ink); }
+.primary:hover, .button.primary:hover { filter: brightness(1.1); background: var(--action); }
+.intake-form .primary { justify-self: start; }
+
+.inline-form { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+.inline-form select { min-width: 12rem; flex: 1; }
+
+/* Tables --------------------------------------------------------------- */
+.table-wrap { overflow-x: auto; margin: 0.75rem 0 1rem; }
+table { border-collapse: collapse; width: 100%; background: var(--surface); font-size: 0.95rem; }
+th, td { text-align: left; padding: 0.55rem 0.75rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+thead th { font-weight: 600; color: var(--muted); border-bottom: 2px solid var(--rule); white-space: nowrap; }
+.num { text-align: right; font-variant-numeric: tabular-nums; }
+.flag { color: var(--needs_mapping); font-weight: 700; }
+.nowrap { white-space: nowrap; }
+.mapped { margin: 0.35rem 0; color: var(--sent); font-weight: 600; }
+.mapped::before { content: "\2713  "; }
+.confirm { flex-basis: 100%; display: flex; gap: 0.45rem; align-items: center; font-size: 0.9rem; }
+
+/* The outcome rack: one segment per outcome, sized by row count -------- */
+.outcome { margin-top: 1.75rem; }
+.rack {
+  display: flex; gap: 3px;
+  height: 2.25rem;
+  padding: 4px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+}
+.seg { min-width: 6px; border-radius: 3px; }
+.seg.s-sent { background: var(--sent); }
+.seg.s-needs_mapping { background: var(--needs_mapping); }
+.seg.s-rejected { background: var(--rejected); }
+.seg.s-duplicate { background: var(--duplicate); }
+.seg.s-not_reportable { background: var(--not_reportable); }
+.seg.s-failed_validation { background: var(--failed_validation); }
+
+.tally {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 1.25rem 1.5rem; margin: 1.25rem 0 0.5rem;
+}
+.tally-item { display: grid; grid-template-areas: "count" "label" "desc"; align-content: start; margin: 0; }
+.tally-item dt { grid-area: label; font-weight: 600; display: flex; align-items: center; gap: 0.45rem; }
+.tally-item dt::before { content: ""; width: 0.9rem; height: 0.55rem; border-radius: 2px; background: currentColor; }
+.tally-item .count {
+  grid-area: count; margin: 0;
+  font-family: var(--font-display); font-weight: 600; font-size: 2.4rem; line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+}
+.tally-item .desc { grid-area: desc; margin: 0.2rem 0 0; color: var(--muted); font-size: 0.875rem; line-height: 1.4; }
+.tally-item.s-sent dt::before { background: var(--sent); }
+.tally-item.s-needs_mapping dt::before { background: var(--needs_mapping); }
+.tally-item.s-rejected dt::before { background: var(--rejected); }
+.tally-item.s-duplicate dt::before { background: var(--duplicate); }
+.tally-item.s-not_reportable dt::before { background: var(--not_reportable); }
+.tally-item.s-failed_validation dt::before { background: var(--failed_validation); }
+
+/* Attention blocks ----------------------------------------------------- */
+.block { margin: 1.25rem 0 2rem; }
+.block + .block { padding-top: 1.25rem; border-top: 1px dashed var(--rule); }
+
+.downloads { padding-left: 1.1rem; }
+.downloads li { margin: 0.3rem 0; }
+
+/* Message viewer ------------------------------------------------------- */
+.segment h2 { display: flex; align-items: baseline; gap: 0.75rem; }
+.seg-code {
+  font-size: 0.95rem; padding: 0.1rem 0.45rem; border-radius: 3px;
+  background: var(--notice); color: var(--ink);
+}
+.fields th { width: 6.5rem; white-space: nowrap; }
+.fields td:nth-child(2) { width: 38%; color: var(--muted); }
+.fields .value { word-break: break-all; }
+.raw { margin-top: 2.5rem; }
+.raw summary { cursor: pointer; font-weight: 600; color: var(--action); }
+.raw pre {
+  background: var(--surface); border: 1px solid var(--rule); border-radius: 4px;
+  padding: 1rem; overflow-x: auto; font-family: var(--font-mono); font-size: 0.85rem; line-height: 1.5;
+}
+
+@media (max-width: 40rem) {
+  h1 { font-size: 1.8rem; }
+  .tally-item .count { font-size: 2rem; }
+  nav { gap: 1rem; }
+}

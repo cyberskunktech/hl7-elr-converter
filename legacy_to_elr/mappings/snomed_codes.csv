@@ -1,0 +1,9 @@
+snomed_code,display,category,verified_source
+10828004,Positive,result,https://smart.who.int/ddcc/ValueSet-LabTestQualitativeResultSnomedValueSet.html
+260373001,Detected,result,https://smart.who.int/ddcc/ValueSet-LabTestQualitativeResultSnomedValueSet.html
+260385009,Negative,result,https://smart.who.int/ddcc/ValueSet-LabTestQualitativeResultSnomedValueSet.html
+260415000,Not detected,result,https://smart.who.int/ddcc/ValueSet-LabTestQualitativeResultSnomedValueSet.html
+419984006,Inconclusive,result,https://smart.who.int/ddcc/ValueSet-LabTestQualitativeResultSnomedValueSet.html
+119364003,Serum specimen,specimen,https://fhir.org/guides/stats2/valueset-us.cdc.phinvads-2.16.840.1.114222.4.11.7104.html
+119339001,Stool specimen,specimen,https://fhir.org/guides/stats2/valueset-us.cdc.phinvads-2.16.840.1.114222.4.11.7104.html
+258500001,Nasopharyngeal swab,specimen,https://fhir.org/guides/stats2/valueset-us.cdc.phinvads-2.16.840.1.114222.4.11.7104.html

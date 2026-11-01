@@ -1,0 +1,20 @@
+common_field,check_location,usage,description
+patient_id,PID-3.1,R,Patient identifier
+patient_last,PID-5.1,R,Patient last name
+patient_first,PID-5.2,R,Patient first name
+dob,PID-7,RE,Date of birth
+sex,PID-8,RE,Administrative sex
+race,PID-10,RE,Race
+street,PID-11.1,RE,Patient street address
+zip,PID-11.5,R,Patient ZIP code
+patient_phone,PID-13.7,RE,Patient phone
+ethnicity,PID-22,RE,Ethnic group
+provider_last,ORC-12.2,R,Ordering provider
+ordering_facility,ORC-21.1,R,Ordering facility name
+facility_street,ORC-22.1,R,Ordering facility address
+facility_phone,ORC-23.7,R,Ordering facility phone
+loinc_code,OBX-3.1,R,Test performed (LOINC)
+collected_at,OBR-7,R,Specimen collection date/time
+resulted_at,OBR-22,R,Result report date/time
+result_code,OBX-5.1,R,Test result (SNOMED CT)
+specimen_code,SPM-4.1,R,Specimen type (SNOMED CT)

@@ -1,0 +1,28 @@
+DATA QUALITY REPORT (synthetic data)
+Run at 2026-11-01 19:38, data extracted 2026-07-01
+
+Reports received:            594
+Rejected (need follow-up):   21
+    unreadable report date: 6
+    unrecognized disease: 6
+    missing disease: 6
+    missing patient ID: 3
+Accepted:                    573
+Accepted with a fix applied: 30
+    onset after report date: 12
+    age out of range: 9
+    unknown district: 9
+Duplicate reports merged:    49
+Cases (unique illnesses):    524
+
+Completeness (share of cases with a known value)
+    onset date:      87%
+    age:             98%
+    sex:             97%
+    district:        98%
+    hospitalization: 99%
+
+Timeliness
+    median days from onset to first report: 7
+
+Epi weeks calculated with: built-in fallback

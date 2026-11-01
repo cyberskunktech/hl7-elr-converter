@@ -1,0 +1,26 @@
+source_id,common_field,local_value,standard_value
+CHL,sex,m,M
+CHL,sex,f,F
+CHL,sex,u,U
+RVC,sex,1,M
+RVC,sex,2,F
+RVC,sex,9,U
+RRL,sex,male,M
+RRL,sex,female,F
+RRL,sex,unk,U
+CHL,result_local,pos,10828004
+CHL,result_local,neg,260385009
+CHL,result_local,ind,419984006
+RVC,result_local,detected,260373001
+RVC,result_local,not detected,260415000
+RVC,result_local,positive,10828004
+RVC,result_local,negative,260385009
+RRL,result_local,d,260373001
+RRL,result_local,nd,260415000
+RRL,result_local,inc,419984006
+CHL,specimen_local,ser,119364003
+CHL,specimen_local,nps,258500001
+CHL,specimen_local,stl,119339001
+RRL,specimen_local,serum,119364003
+RRL,specimen_local,np swab,258500001
+RRL,specimen_local,stool,119339001

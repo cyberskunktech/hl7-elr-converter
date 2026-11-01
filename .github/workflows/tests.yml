@@ -1,0 +1,23 @@
+# Runs both test suites on GitHub every time code is pushed.
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Install requirements
+        run: pip install -r requirements.txt
+      - name: Case surveillance pipeline tests
+        working-directory: surveillance_pipeline
+        run: python -m unittest discover tests -v
+      - name: Legacy-to-ELR converter tests
+        working-directory: legacy_to_elr
+        run: python -m unittest discover tests -v

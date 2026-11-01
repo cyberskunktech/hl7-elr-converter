@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Mappings | Lab Reporting Desk{% endblock %}
+{% block content %}
+<h1>Mappings</h1>
+<p class="lede">How each source's local codes translate into the standard codes ELR requires. The quickest way to add one is from a conversion's "Codes to map" list.</p>
+
+<section>
+  <h2>Test codes</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Source</th><th>Local code</th><th>LOINC</th><th>Test</th></tr></thead>
+      <tbody>
+      {% for m in tests %}<tr><td>{{ m.source }}</td><td><code>{{ m.local_test }}</code></td><td><code>{{ m.loinc_code }}</code></td><td>{{ m.standard }}</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <h2>Result and specimen values</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Source</th><th>Type</th><th>Local value</th><th>SNOMED CT</th><th>Means</th></tr></thead>
+      <tbody>
+      {% for m in values %}<tr><td>{{ m.source }}</td><td>{{ m.kind }}</td><td><code>{{ m.local_value }}</code></td><td><code>{{ m.standard_value }}</code></td><td>{{ m.standard }}</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <h2>Verified standard codes</h2>
+  <p>These are the only codes that can be chosen when mapping. Each one was checked against the published source shown.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>LOINC</th><th>Test</th><th>Checked against</th></tr></thead>
+      <tbody>
+      {% for c in loinc %}<tr><td><code>{{ c.loinc_code }}</code></td><td>{{ c.long_name }}</td><td><a href="{{ c.verified_source }}" rel="noopener noreferrer">Source</a></td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>SNOMED CT</th><th>Meaning</th><th>Used for</th><th>Checked against</th></tr></thead>
+      <tbody>
+      {% for c in snomed %}<tr><td><code>{{ c.snomed_code }}</code></td><td>{{ c.display }}</td><td>{{ c.category|capitalize }}</td><td><a href="{{ c.verified_source }}" rel="noopener noreferrer">Source</a></td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

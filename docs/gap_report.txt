@@ -1,0 +1,31 @@
+GAP REPORT: what each source cannot yet supply (synthetic data)
+
+Usage: R = required, RE = required if known. Usage levels are prototype
+assumptions; confirm them in the HL7 ELR 2.5.1 guide and your state's guide.
+
+[CHL]
+    PARTIAL        R   Patient identifier [PID-3.1], 98% complete
+    NOT COLLECTED  RE  Race [PID-10], 0% complete
+    NOT COLLECTED  RE  Ethnic group [PID-22], 0% complete
+    PARTIAL        R   Test performed (LOINC) [OBX-3.1], 97% complete
+    PARTIAL        R   Specimen collection date/time [OBR-7], 98% complete
+
+[RVC]
+    NOT COLLECTED  RE  Race [PID-10], 0% complete
+    NOT COLLECTED  RE  Patient phone [PID-13.7], 0% complete
+    NOT COLLECTED  RE  Ethnic group [PID-22], 0% complete
+    PARTIAL        R   Test performed (LOINC) [OBX-3.1], 97% complete
+    PARTIAL        R   Specimen collection date/time [OBR-7], 98% complete
+    PARTIAL        R   Test result (SNOMED CT) [OBX-5.1], 98% complete
+    PARTIAL        R   Specimen type (SNOMED CT) [SPM-4.1], 97% complete (confirm with the lab)
+
+[RRL]
+    PARTIAL        R   Patient identifier [PID-3.1], 98% complete
+    NOT COLLECTED  RE  Date of birth [PID-7], 0% complete (only age is collected; a birth date is never invented from an age)
+    NOT COLLECTED  RE  Race [PID-10], 0% complete
+    NOT COLLECTED  RE  Patient street address [PID-11.1], 0% complete
+    NOT COLLECTED  RE  Patient phone [PID-13.7], 0% complete
+    NOT COLLECTED  RE  Ethnic group [PID-22], 0% complete
+    PARTIAL        R   Ordering facility address [ORC-22.1], 97% complete
+    PARTIAL        R   Ordering facility phone [ORC-23.7], 97% complete
+    PARTIAL        R   Test performed (LOINC) [OBX-3.1], 97% complete

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Message {{ msg.control_id }} | Lab Reporting Desk{% endblock %}
+{% block content %}
+<p class="crumb"><a href="{{ url_for('show_run', run_id=run_id) }}">Back to the conversion</a></p>
+<h1>ELR message for {{ msg.patient }}</h1>
+<p class="meta">{{ msg.test }}: {{ msg.result }}. Message ID <code>{{ msg.control_id }}</code>.</p>
+<p class="lede">An HL7 message is a stack of segments, one per line. Each value sits at a numbered position, like PID-5 for the patient's name. Here is every value in this message and what it holds.</p>
+
+{% for name, description, rows in segments %}
+<section class="segment">
+  <h2><code class="seg-code">{{ name }}</code> {{ description }}</h2>
+  <div class="table-wrap">
+    <table class="fields">
+      <tbody>
+      {% for fid, label, value in rows %}
+        <tr><th scope="row"><code>{{ fid }}</code></th><td>{{ label }}</td><td><code class="value">{{ value }}</code></td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endfor %}
+
+<details class="raw">
+  <summary>Show the message exactly as it will be sent</summary>
+  <pre>{{ raw }}</pre>
+</details>
+{% endblock %}

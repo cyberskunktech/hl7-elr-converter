@@ -1,0 +1,64 @@
+ONE SYNTHETIC ELR MESSAGE, FIELD BY FIELD
+
+--- MSH ---
+MSH-3   Sending application                           LEGACY2ELR^2.16.840.1.113883.19.4.1^ISO
+MSH-4   Sending facility (name^CLIA^CLIA)             Central Hospital Laboratory^99D0000001^CLIA
+MSH-5   Receiving application                         SYNTH_DOH_ELR^2.16.840.1.113883.19.4.2^ISO
+MSH-6   Receiving facility                            SYNTH_DOH^2.16.840.1.113883.19.4.3^ISO
+MSH-7   Message date/time                             20261101143810-0500
+MSH-9   Message type (lab result)                     ORU^R01^ORU_R01
+MSH-10  Message control ID (unique)                   CHL-CHL26020-1
+MSH-11  Processing ID                                 P
+MSH-12  HL7 version                                   2.5.1
+MSH-15  Accept acknowledgment                         NE
+MSH-16  Application acknowledgment                    NE
+MSH-21  Message profile (national ELR guide)          PHLabReport-NoAck^^2.16.840.1.114222.4.10.3^ISO
+
+--- SFT ---
+SFT-1   Software organization                         Legacy-to-ELR Prototype (synthetic data)
+SFT-2   Software version                              0.1
+SFT-3   Software name                                 legacy-to-elr
+SFT-4   Software build ID                             0.1
+
+--- PID ---
+PID-1   Set ID                                        1
+PID-3   Patient ID^^^assigning authority^type         C502041^^^CHL&2.16.840.1.113883.19.4.11&ISO^MR
+PID-5   Patient name (last^first)                     KIMURA^AMARA^^^^^L
+PID-7   Date of birth                                 19991220
+PID-8   Sex                                           M
+PID-11  Patient address                               920 Cedar Lane^^Southvale^XX^00005^USA^H
+PID-13  Patient phone                                 ^PRN^PH^^1^555^5554447
+
+--- ORC ---
+ORC-1   Order control (RE = results)                  RE
+ORC-3   Filler order number (the lab's accession)     CHL26020^CHL^99D0000001^CLIA
+ORC-12  Ordering provider                             1990000022^Bergstrom^Lena
+ORC-21  Ordering facility                             Central Hospital Infectious Disease Clinic
+ORC-22  Ordering facility address                     100 Hospital Way^^Northgate^XX^00001^USA^B
+ORC-23  Ordering facility phone                       ^WPN^PH^^1^555^5550113
+
+--- OBR ---
+OBR-1   Set ID                                        1
+OBR-3   Filler order number                           CHL26020^CHL^99D0000001^CLIA
+OBR-4   Test (LOINC^name^LN^local code^local name^L)  35276-5^Measles virus IgM Ab [Presence] in Serum by Immunoassay^LN^MEASM^MEASM^L
+OBR-7   Specimen collected                            202609150942-0400
+OBR-16  Ordering provider                             1990000022^Bergstrom^Lena
+OBR-22  Result reported                               202609171242-0400
+OBR-25  Result status (F = final)                     F
+
+--- OBX ---
+OBX-1   Set ID                                        1
+OBX-2   Value type (CWE = coded)                      CWE
+OBX-3   Test performed (LOINC)                        35276-5^Measles virus IgM Ab [Presence] in Serum by Immunoassay^LN^MEASM^MEASM^L
+OBX-5   Result (SNOMED CT^name^SCT^local value^local value^L) 10828004^Positive^SCT^POS^POS^L
+OBX-11  Result status (F = final)                     F
+OBX-14  Observation date/time                         202609150942-0400
+OBX-19  Analysis date/time                            202609171242-0400
+OBX-23  Performing lab (name and CLIA number)         Central Hospital Laboratory^L^^^^CLIA&2.16.840.1.113883.4.7&ISO^XX^^^99D0000001
+OBX-24  Performing lab address                        100 Hospital Way^^Northgate^XX^00001^USA^B
+
+--- SPM ---
+SPM-1   Set ID                                        1
+SPM-2   Specimen ID                                   ^CHL26020&CHL&99D0000001&CLIA
+SPM-4   Specimen type (SNOMED CT)                     119364003^Serum specimen^SCT^SER^SER^L
+SPM-17  Specimen collection date/time                 202609150942-0400

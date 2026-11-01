@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% block title %}{{ meta.source_name }} | Lab Reporting Desk{% endblock %}
+{% block content %}
+<p class="crumb"><a href="{{ url_for('home') }}">All conversions</a></p>
+<h1>{{ meta.source_name }}</h1>
+<p class="meta">{{ meta.original_filename }}, converted {{ created }}{% if meta.parent %}. Reconverted from an <a href="{{ url_for('show_run', run_id=meta.parent) }}">earlier run</a>{% endif %}.</p>
+
+<section class="outcome" aria-label="Outcome of {{ meta.rows }} rows">
+  <div class="rack" aria-hidden="true">
+    {% for key, label, desc in statuses %}{% if counts.get(key) %}<span class="seg s-{{ key }}" style="flex-grow: {{ counts[key] }}" title="{{ label }}: {{ counts[key] }}"></span>{% endif %}{% endfor %}
+  </div>
+  <dl class="tally">
+    {% for key, label, desc in statuses %}{% if counts.get(key) or key in ['sent', 'needs_mapping', 'rejected'] %}
+    <div class="tally-item s-{{ key }}">
+      <dt>{{ label }}</dt>
+      <dd class="count">{{ counts.get(key, 0) }}</dd>
+      <dd class="desc">{{ desc }}</dd>
+    </div>
+    {% endif %}{% endfor %}
+  </dl>
+  <p class="rows-total">{{ meta.rows }} rows in this file.</p>
+</section>
+
+<section id="attention">
+  <h2>Needs your attention</h2>
+  {% include "_flashes.html" %}
+  {% if not needs and not rejected and not failed %}
+    <p class="empty">Nothing in this file needs your attention.</p>
+  {% endif %}
+
+  {% if needs %}
+  <div id="needs-mapping" class="block">
+    <h3>Codes to map</h3>
+    <p>These local values aren't in the maps yet, so their rows weren't converted. Map each one to a verified standard code, then convert the file again.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Local value</th><th>Type</th><th class="num">Rows</th><th>Map to</th></tr></thead>
+        <tbody>
+        {% for n in needs %}
+          <tr>
+            <td><code>{{ n.local_value }}</code></td>
+            <td class="nowrap">{{ n.kind|capitalize }}</td>
+            <td class="num">{{ n.rows }}</td>
+            <td>
+              {% if n.mapped_to %}
+              <p class="mapped">Mapped to {{ n.mapped_to }}. Convert again to apply it.</p>
+              {% else %}
+              <form method="post" action="{{ url_for('add_mapping') }}" class="inline-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="run_id" value="{{ meta.run_id }}">
+                <input type="hidden" name="kind" value="{{ n.kind }}">
+                <input type="hidden" name="source_id" value="{{ n.source_id }}">
+                <input type="hidden" name="local_value" value="{{ n.local_value }}">
+                <label class="visually-hidden" for="map-{{ loop.index }}">Standard code for {{ n.local_value }}</label>
+                <select id="map-{{ loop.index }}" name="standard_code" required>
+                  <option value="">Choose a verified code</option>
+                  {% for code, name in options[n.kind] %}<option value="{{ code }}">{{ name }} ({{ code }})</option>{% endfor %}
+                </select>
+                <button type="submit">Save mapping</button>
+                {% if n.kind == 'test code' %}
+                <label class="confirm"><input type="checkbox" name="confirmed" value="yes" required> The lab that runs this test confirmed this code</label>
+                {% endif %}
+              </form>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p class="hint">Only codes checked against a published source are listed, and a test code must be confirmed by the lab that runs the test, because similar-looking codes can mean very different things. If the right code isn't listed, don't pick the closest one: a lab specialist adds it, with its source, to <code>mappings/loinc_tests.csv</code> or <code>mappings/snomed_codes.csv</code>.</p>
+    <form method="post" action="{{ url_for('rerun', run_id=meta.run_id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <button type="submit" class="primary">Convert again with current mappings</button>
+    </form>
+  </div>
+  {% endif %}
+
+  {% if rejected %}
+  <div class="block">
+    <h3>Rows to send back to the source</h3>
+    <p>Each of these rows is missing something essential or has a value that can't be read. They need correcting in the source system and exporting again.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th class="num">Row</th><th>Record</th><th>What's wrong</th></tr></thead>
+        <tbody>
+        {% for r in rejected %}<tr><td class="num">{{ r.row_number }}</td><td><code>{{ r.record_id }}</code></td><td>{{ r.reason|capitalize }}</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <a class="button" href="{{ url_for('download', run_id=meta.run_id, name='quarantine_for_followup.csv') }}">Download the follow-up list</a>
+  </div>
+  {% endif %}
+
+  {% if failed %}
+  <div class="block">
+    <h3>Messages that failed our checks</h3>
+    <p>These rows were built into messages that didn't pass validation. That points to a bug in the converter, not the data.</p>
+    <ul>{% for f in failed %}<li>Row {{ f.row_number }}: {{ f.reason }}</li>{% endfor %}</ul>
+  </div>
+  {% endif %}
+</section>
+
+<section id="ready">
+  <h2>Ready to send</h2>
+  {% if total_messages %}
+    <p>{{ total_messages }} messages passed every check.{% if total_messages > messages|length %} Showing the first {{ messages|length }}.{% endif %}</p>
+    <p><a class="button primary" href="{{ url_for('download', run_id=meta.run_id, name='elr_messages.hl7') }}">Download messages (.hl7)</a></p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Patient</th><th>Test</th><th>Result</th><th>Collected</th><th><span class="visually-hidden">Details</span></th></tr></thead>
+        <tbody>
+        {% for m in messages %}
+          <tr><td>{{ m.patient }}</td><td>{{ m.test }}</td><td>{{ m.result }}</td><td class="nowrap">{{ m.collected }}</td>
+              <td class="nowrap"><a href="{{ url_for('show_message', run_id=meta.run_id, control_id=m.control_id) }}">View message</a></td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="empty">No messages from this file yet. Resolve the items above, then convert again.</p>
+  {% endif %}
+</section>
+
+<section id="gaps">
+  <h2>What this source can't supply yet</h2>
+  <p>Fields the ELR standard asks for that this source never collects or only sometimes fills in. Share this with the people who run the source system.</p>
+  {% if gaps %}
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Field</th><th>HL7 location</th><th>Standard says</th><th>Status</th><th class="num">Filled in</th><th>Note</th></tr></thead>
+      <tbody>
+      {% for g in gaps %}
+        <tr><td>{{ g.field }}</td><td><code>{{ g.hl7_location }}</code></td><td>{{ g.usage_label }}</td>
+            <td>{{ g.status|capitalize }}</td><td class="num">{{ g.percent_complete }}%</td><td>{{ g.note|capitalize }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <p class="hint">Requirement levels are prototype assumptions until they're checked against the state's ELR guide.</p>
+  {% else %}
+  <p class="empty">No gaps. This source supplies every field we check.</p>
+  {% endif %}
+</section>
+
+<section id="downloads">
+  <h2>Downloads</h2>
+  <ul class="downloads">
+    {% for name, label in downloads.items() %}<li><a href="{{ url_for('download', run_id=meta.run_id, name=name) }}">{{ label }}</a></li>{% endfor %}
+  </ul>
+</section>
+{% endblock %}

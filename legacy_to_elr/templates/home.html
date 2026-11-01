@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="intake">
+  <h1>Convert a lab export</h1>
+  <p class="lede">Turn an export from an older lab or clinic system into ELR messages for the health department. You'll see what's ready to send and what needs your attention before anything goes out.</p>
+
+  <form method="post" action="{{ url_for('start_conversion') }}" enctype="multipart/form-data" class="intake-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <div class="field">
+      <label for="source_id">Where is this export from?</label>
+      <select id="source_id" name="source_id" required>
+        {% for s in sources %}<option value="{{ s.source_id }}">{{ s.name }}</option>{% endfor %}
+      </select>
+    </div>
+    <fieldset class="field">
+      <legend>Which file?</legend>
+      <label class="choice"><input type="radio" name="input_choice" value="sample" checked> Use the synthetic sample file for this source</label>
+      <label class="choice"><input type="radio" name="input_choice" value="upload"> Upload an export (.csv or .txt, up to 10 MB)</label>
+      <input type="file" id="export_file" name="export_file" accept=".csv,.txt" aria-label="Export file to upload">
+    </fieldset>
+    <button type="submit" class="primary">Convert file</button>
+  </form>
+</section>
+
+<section>
+  <h2>Past conversions</h2>
+  {% if runs %}
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Converted</th><th>Source</th><th>File</th><th class="num">Rows</th><th class="num">Sent</th><th class="num">Needs attention</th><th><span class="visually-hidden">Open</span></th></tr></thead>
+      <tbody>
+      {% for r in runs %}
+        <tr>
+          <td>{{ r.pretty_time }}</td>
+          <td>{{ r.source_name }}</td>
+          <td>{{ r.original_filename }}</td>
+          <td class="num">{{ r.rows }}</td>
+          <td class="num">{{ r.counts.get('sent', 0) }}</td>
+          <td class="num">{% if r.attention %}<span class="flag">{{ r.attention }}</span>{% else %}0{% endif %}</td>
+          <td><a href="{{ url_for('show_run', run_id=r.run_id) }}">Open</a></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="empty">No conversions yet. Pick a source above and convert its sample file to see how it works.</p>
+  {% endif %}
+</section>
+
+<script>
+  // Choosing a file switches the form to "Upload", so the choice always matches what you did.
+  document.getElementById("export_file").addEventListener("change", function () {
+    document.querySelector('input[name="input_choice"][value="upload"]').checked = true;
+  });
+</script>
+{% endblock %}
