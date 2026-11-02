@@ -1,6 +1,6 @@
-# Public Health Data Pipelines
+﻿# Public Health Data Pipelines
 
-![tests](https://github.com/EngineerManzini/public-health-pipelines/actions/workflows/tests.yml/badge.svg)
+![tests](https://github.com/cyberskunktech/hl7-elr-converter/actions/workflows/tests.yml/badge.svg)
 
 **All data in this repository is synthetic. No real patients, facilities, or identifiers.**
 
@@ -17,8 +17,8 @@ HL7 standards and tested against synthetic data with a known answer key.
 Requires Python 3.11 or newer.
 
 ```
-git clone https://github.com/EngineerManzini/public-health-pipelines.git
-cd public-health-pipelines
+git clone https://github.com/cyberskunktech/hl7-elr-converter.git
+cd hl7-elr-converter
 python -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
