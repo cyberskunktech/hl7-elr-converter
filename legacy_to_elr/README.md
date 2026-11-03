@@ -74,10 +74,28 @@ synthetic data only.
 
 Every LOINC and SNOMED CT code in `mappings/` was checked against a published
 source, which is recorded next to it. The MSH-21 profile identifier and the CLIA
-identifier OID were checked against published guides (see `config.py`).
+and NPI identifier OIDs were checked against published guides (see `config.py`).
+
+A sample message was checked with the ONC ELR validation tool, formerly hosted
+by NIST and now at https://tools.valitheus.com/mu-elr/ (context-free mode).
+The first run found 19 errors in five groups:
+
+| ONC rule | What was wrong | Fix |
+|---|---|---|
+| ELR-22 | Profile ID (MSH-21) used a value from a state guide | National value `2.16.840.1.113883.9.11`; states can override it in `config.py` |
+| ELR-013 | Four encoding characters instead of five | MSH-2 is now `^~\&#` |
+| ELR-010 | Placeholder state "XX" in three addresses | A real two-letter state code, set in `config.py` |
+| ELR-004, ELR-005 | Order and specimen IDs labeled with a CLIA number | Labeled with the lab's ISO OID |
+| Usage | NPI sent without its issuer and type; specimen received time missing | Both added |
+
+After the fixes, the same message passes with **0 errors**. Both reports are in
+[`docs/validation/`](../docs/validation/). Our own validator now checks every one
+of these rules, and a test puts each error back into a message to prove it
+would be caught.
 
 Not done yet, and needed before real use:
-- Testing with the NIST ELR validator and the state's onboarding process.
+- Checking messages from the Riverside clinic and reference lab sources with the
+  ONC tool, then the state's onboarding process.
 - The state's own ELR guide, which adds rules on top of the national one.
   Requirement levels in `mappings/elr_requirements.csv` are prototype assumptions.
 - Race and ethnicity coding (no source collects them yet; see the gap report).

@@ -21,6 +21,9 @@ import pandas as pd
 import config
 
 rng = np.random.default_rng(config.RANDOM_SEED)
+# A second generator for specimen received times, kept separate so adding
+# this field didn't change any of the other synthetic values.
+rng_received = np.random.default_rng(config.RANDOM_SEED + 1)
 
 FIRST = ["Amara", "Ben", "Chloe", "Daniel", "Esther", "Farid", "Grace", "Hugo", "Ines",
          "Jamal", "Keiko", "Liam", "Maya", "Noah", "Olivia", "Priya", "Quinn", "Rosa",
@@ -134,6 +137,8 @@ def render(source, rows):
         test = UNMAPPED_TEST[source] if r["problem"] == "unmapped_test" else r["test"]
         pid = "" if r["problem"] == "missing_patient_id" else r["patient_id"]
         res = result_text(source, r["result_kind"], r["problem"])
+        # The lab receives the specimen 30 minutes to 10 hours after collection
+        received = r["collected"] + pd.Timedelta(minutes=int(rng_received.integers(30, 600)))
         if source == "CHL":
             coll = "20261345" if r["problem"] == "bad_collection_date" else f"{r['collected']:%Y%m%d%H%M}"
             out.append({"ACCESSION": r["record_id"], "MRN": pid, "PT_LAST": r["last"].upper(),
@@ -141,7 +146,7 @@ def render(source, rows):
                         "ADDR1": r["street"], "CITY": r["city"], "ST": config.STATE, "ZIP": r["zip"],
                         "PHONE": r["phone"], "TEST_CD": test, "RESULT": res,
                         "SPEC": SPECIMEN_FOR["CHL"][test], "COLL_DTTM": coll,
-                        "RSLT_DTTM": f"{r['resulted']:%Y%m%d%H%M}", "ORD_NPI": r["npi"],
+                        "RECV_DTTM": f"{received:%Y%m%d%H%M}", "RSLT_DTTM": f"{r['resulted']:%Y%m%d%H%M}", "ORD_NPI": r["npi"],
                         "ORD_PROV": f"{r['prov_last']}, {r['prov_first']}", "ORD_LOC": r["facility"]})
         elif source == "RVC":
             coll = "13/45/2026 10:00" if r["problem"] == "bad_collection_date" else f"{r['collected']:%m/%d/%Y %H:%M}"
@@ -151,7 +156,7 @@ def render(source, rows):
                         "Patient Name": f"{r['last']}, {r['first']}", "Birth Date": f"{r['dob']:%m/%d/%Y}",
                         "Gender": sex, "Street": r["street"], "City": r["city"], "Zip": r["zip"],
                         "Test": messy_test, "Result": res, "Collected": coll,
-                        "Reported": f"{r['resulted']:%m/%d/%Y %H:%M}",
+                        "Received": f"{received:%m/%d/%Y %H:%M}", "Reported": f"{r['resulted']:%m/%d/%Y %H:%M}",
                         "Provider": f"{r['prov_first']} {r['prov_last']}"})
         else:
             sex = {"M": "MALE", "F": "FEMALE", "U": "UNK"}[r["sex"]]
@@ -160,12 +165,16 @@ def render(source, rows):
             out.append({"ACC": r["record_id"], "PID": pid, "NAME": f"{r['last'].upper()}^{r['first'].upper()}",
                         "AGE": age, "SX": sex, "ZIP": r["zip"], "TST": test, "RES": res,
                         "SRC": SPECIMEN_FOR["RRL"][test], "DCOLL": f"{r['collected']:%Y-%m-%d}",
-                        "DRES": f"{r['resulted']:%Y-%m-%d}", "ORDFAC": fac,
+                        "DRECV": f"{received:%Y-%m-%d}", "DRES": f"{r['resulted']:%Y-%m-%d}", "ORDFAC": fac,
                         "ORDDOC": f"{r['prov_last'].upper()}^{r['prov_first'].upper()}"})
     return pd.DataFrame(out)
 
 
 def main():
+    # Start from the same seed every time, so every run makes identical data
+    global rng, rng_received
+    rng = np.random.default_rng(config.RANDOM_SEED)
+    rng_received = np.random.default_rng(config.RANDOM_SEED + 1)
     sources = pd.read_csv(config.MAPPINGS_DIR / "sources.csv", dtype=str, keep_default_na=False)
     config.LEGACY_DIR.mkdir(parents=True, exist_ok=True)
     keys = []

@@ -18,3 +18,4 @@ collected_at,OBR-7,R,Specimen collection date/time
 resulted_at,OBR-22,R,Result report date/time
 result_code,OBX-5.1,R,Test result (SNOMED CT)
 specimen_code,SPM-4.1,R,Specimen type (SNOMED CT)
+received_at,SPM-18,R,Specimen received date/time

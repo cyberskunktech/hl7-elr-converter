@@ -17,6 +17,7 @@ Steps (each is a function below):
 
 Run:  python convert.py
 """
+import re
 from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -24,7 +25,7 @@ from zoneinfo import ZoneInfo
 import pandas as pd
 
 import config
-from hl7_builder import fld, get, message, parse, segment, sub
+from hl7_builder import ENCODING_CHARACTERS, fld, get, message, parse, segment, sub
 
 TZ = ZoneInfo(config.TIMEZONE)
 EXPECTED_SEGMENTS = ["MSH", "SFT", "PID", "ORC", "OBR", "OBX", "SPM"]
@@ -32,7 +33,7 @@ EXPECTED_SEGMENTS = ["MSH", "SFT", "PID", "ORC", "OBR", "OBX", "SPM"]
 
 def load_tables():
     names = ["sources", "field_map", "value_map", "local_test_map", "loinc_tests",
-             "snomed_codes", "facility_directory", "elr_requirements"]
+             "snomed_codes", "facility_directory", "elr_requirements", "us_state_codes"]
     return {n: pd.read_csv(config.MAPPINGS_DIR / f"{n}.csv", dtype=str, keep_default_na=False)
             for n in names}
 
@@ -94,7 +95,8 @@ def harmonize(raw, source_id, field_map):
     out = pd.DataFrame({"source_id": source_id, "row_number": raw["row_number"]})
     for m in field_map[field_map["source_id"] == source_id].itertuples():
         if m.constant:
-            out[m.common_field] = m.constant
+            # "{STATE}" means "use the state from config.py"
+            out[m.common_field] = config.STATE if m.constant == "{STATE}" else m.constant
             continue
         text = raw[m.source_column].str.strip().replace("", None)
         kind, _, pattern = m.format.partition(":")
@@ -121,7 +123,7 @@ def harmonize(raw, source_id, field_map):
 def code(df, t):
     df = df.copy()
     for col in ["race", "ethnicity", "patient_phone", "provider_id", "specimen_local",
-                "dob", "street", "city", "state"]:
+                "dob", "street", "city", "state", "received_at"]:
         if col not in df:
             df[col] = None
 
@@ -231,14 +233,21 @@ def ts(value, has_time):
 
 
 def build_message(r, src, sent_at, control_id):
-    filler = fld(r.record_id, src.source_id, src.clia, "CLIA")
-    provider = fld(r.provider_id, r.provider_last, r.provider_first)
+    # Order and specimen numbers are labeled with the lab's ISO OID (ONC rules ELR-004, ELR-005)
+    filler = fld(r.record_id, src.source_id, src.oid, "ISO")
+    # When an NPI is sent, say who issued it and what kind of ID it is (XCN.9 and XCN.13)
+    if isinstance(r.provider_id, str) and r.provider_id:
+        provider = fld(r.provider_id, r.provider_last, r.provider_first, "", "", "", "", "",
+                       sub(*config.NPI_ASSIGNING_AUTHORITY), "", "", "", config.NPI_TYPE)
+    else:
+        provider = fld("", r.provider_last, r.provider_first)
     test = fld(r.loinc_code, r.loinc_name, "LN", r.local_test, r.local_test, "L")
     if r.specimen_derived:
         specimen = fld(r.specimen_code, r.specimen_display, "SCT")
     else:
         specimen = fld(r.specimen_code, r.specimen_display, "SCT", r.specimen_local, r.specimen_local, "L")
     collected = ts(r.collected_at, r.collected_at_has_time)
+    received = ts(r.received_at, r.received_at_has_time)
     resulted = ts(r.resulted_at, r.resulted_at_has_time)
     phone = (fld("", "PRN", "PH", "", "1", r.patient_phone_area, r.patient_phone_local)
              if isinstance(r.patient_phone_local, str) else "")
@@ -264,8 +273,8 @@ def build_message(r, src, sent_at, control_id):
                         11: "F", 14: collected, 19: resulted,
                         23: fld(src.name, "L", "", "", "", sub("CLIA", config.CLIA_OID, "ISO"), "XX", "", "", src.clia),
                         24: fld(src.street, "", src.city, config.STATE, src.zip, "USA", "B")}),
-        segment("SPM", {1: "1", 2: fld("", sub(r.record_id, src.source_id, src.clia, "CLIA")),
-                        4: specimen, 17: fld(collected)}),
+        segment("SPM", {1: "1", 2: fld("", sub(r.record_id, src.source_id, src.oid, "ISO")),
+                        4: specimen, 17: fld(collected), 18: received}),
     ]
     return message(segments)
 
@@ -273,12 +282,22 @@ def build_message(r, src, sent_at, control_id):
 # ---------------------------------------------------------------------------
 # 6. Validate
 # ---------------------------------------------------------------------------
+OID = re.compile(r"^[0-2](\.(0|[1-9][0-9]*))+$")
+
+
 def validate_message(msg, t):
+    """
+    Our own checks, run on every message before it is written. They include
+    every rule the ONC ELR validation tool flagged on our first test message,
+    so those problems can't come back unnoticed.
+    """
     p = parse(msg)
     errors = []
     names = [name for name, _ in p]
     if names != EXPECTED_SEGMENTS:
         errors.append(f"segments {names} != {EXPECTED_SEGMENTS}")
+    if not msg.startswith("MSH|" + ENCODING_CHARACTERS + "|"):
+        errors.append("MSH-2 must be the five ELR encoding characters ^~\\&# (ELR-013)")
     literals = {"MSH-9": "ORU^R01^ORU_R01", "MSH-12": "2.5.1",
                 "MSH-21": "^".join(config.MESSAGE_PROFILE)}
     errors += [f"{loc} should be {want}" for loc, want in literals.items() if get(p, loc) != want]
@@ -298,9 +317,36 @@ def validate_message(msg, t):
         if get(p, f"{loc}.1") not in codes or get(p, f"{loc}.3") != system:
             errors.append(f"{loc} code not in the {system} table")
 
-    collected, resulted, dob = get(p, "OBR-7")[:8], get(p, "OBR-22")[:8], get(p, "PID-7")
+    # States must be real two-letter codes (ELR-010)
+    states = set(t["us_state_codes"]["code"])
+    for loc in ["PID-11.4", "ORC-22.4", "OBX-24.4"]:
+        value = get(p, loc)
+        if value and value not in states:
+            errors.append(f"{loc} state '{value}' is not a FIPS 5-2 code (ELR-010)")
+
+    # Entity identifiers carry an ISO OID and the type 'ISO' (ELR-004, ELR-005)
+    for loc in ["ORC-3", "OBR-3", "SPM-2.2"]:
+        oid, kind = get(p, f"{loc}.3"), get(p, f"{loc}.4")
+        if not OID.match(oid) or kind != "ISO":
+            errors.append(f"{loc} must carry an ISO OID with type ISO (ELR-004, ELR-005)")
+
+    # When a provider ID is sent, its issuer and type are required too
+    for loc in ["ORC-12", "OBR-16"]:
+        if get(p, f"{loc}.1") and not (get(p, f"{loc}.9") and get(p, f"{loc}.13")):
+            errors.append(f"{loc} has an ID but no assigning authority (.9) or ID type (.13)")
+
+    # A value ending in # would be read as "truncated" (see hl7_builder.py)
+    for name, fields in p:
+        for i, value in enumerate(fields[3 if name == "MSH" else 1:], start=3 if name == "MSH" else 1):
+            if any(part.endswith("#") for part in re.split(r"[\\^&~]", value or "")):
+                errors.append(f"{name}-{i} has a value ending in '#', the truncation marker")
+
+    collected, received = get(p, "OBR-7")[:8], get(p, "SPM-18")[:8]
+    resulted, dob = get(p, "OBR-22")[:8], get(p, "PID-7")
     if collected and resulted and collected > resulted:
         errors.append("result reported before specimen was collected")
+    if collected and received and not (collected <= received <= (resulted or received)):
+        errors.append("specimen received outside the collection-to-result window")
     if dob and collected and dob > collected:
         errors.append("birth date after collection date")
     return errors
@@ -330,6 +376,7 @@ FIELD_NAMES = {
     "OBX-19": "Analysis date/time", "OBX-23": "Performing lab (name and CLIA number)",
     "OBX-24": "Performing lab address", "SPM-1": "Set ID", "SPM-2": "Specimen ID",
     "SPM-4": "Specimen type (SNOMED CT)", "SPM-17": "Specimen collection date/time",
+    "SPM-18": "Specimen received date/time",
 }
 
 

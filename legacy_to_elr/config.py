@@ -32,21 +32,33 @@ COLLECTION_END = "2026-09-26"
 # Location (PLACEHOLDERS)
 # ---------------------------------------------------------------------------
 TIMEZONE = "America/New_York"   # PLACEHOLDER: the organization's time zone
-STATE = "XX"                    # PLACEHOLDER: the organization's two-letter state code
+# PLACEHOLDER: the organization's two-letter state code. Must be a real
+# FIPS 5-2 code; the ONC validator rejects made-up codes like "XX" (rule ELR-010).
+STATE = "MA"
 
 # ---------------------------------------------------------------------------
 # Message header (MSH) values
 # ---------------------------------------------------------------------------
-# National ELR 2.5.1 Release 1 profile identifier (MSH-21). Verified against
-# New Mexico's ELR onboarding guide (nmhealth.org/publication/view/guide/9052).
-# Some states use the "Ack" variant instead; check your state's guide.
-MESSAGE_PROFILE = ("PHLabReport-NoAck", "", "2.16.840.1.114222.4.10.3", "ISO")
+# National ELR 2.5.1 Release 1 profile identifier (MSH-21). The ONC ELR
+# validation tool (formerly hosted by NIST) requires 2.16.840.1.113883.9.11
+# (rule ELR-22), the value set by the HL7 ELR R1 errata. Some state guides,
+# such as New Mexico's and Nebraska's, still show the older value
+# 2.16.840.1.114222.4.10.3, and some use the "Ack" variant. If your state's
+# guide says something different, its value goes here.
+MESSAGE_PROFILE = ("PHLabReport-NoAck", "", "2.16.840.1.113883.9.11", "ISO")
 
 SENDING_APPLICATION = ("LEGACY2ELR", "2.16.840.1.113883.19.4.1", "ISO")
 # PLACEHOLDERS: every state publishes its own literal values for these two.
 RECEIVING_APPLICATION = ("SYNTH_DOH_ELR", "2.16.840.1.113883.19.4.2", "ISO")
 RECEIVING_FACILITY = ("SYNTH_DOH", "2.16.840.1.113883.19.4.3", "ISO")
 PROCESSING_ID = "P"   # P = production. States say what to use during testing.
+
+# Who issues provider NPI numbers, written into ORC-12 and OBR-16 whenever an
+# NPI is sent. Verified: HL7 Terminology NamingSystem "npi" (OID
+# 2.16.840.1.113883.4.6) and Iowa's ELR guidance, which asks for
+# "NPI&2.16.840.1.113883.4.6&ISO" plus identifier type "NPI".
+NPI_ASSIGNING_AUTHORITY = ("NPI", "2.16.840.1.113883.4.6", "ISO")
+NPI_TYPE = "NPI"
 
 # The CLIA program's identifier, used to label CLIA numbers.
 # Verified: HL7 US Lab performing-lab profile, fixed value urn:oid:2.16.840.1.113883.4.7

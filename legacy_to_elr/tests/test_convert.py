@@ -24,10 +24,15 @@ class TestHL7Basics(unittest.TestCase):
             self.assertNotIn(char, escaped)
         self.assertEqual(unescape(escaped), text)
 
-    def test_profile_matches_published_literal(self):
-        # Literal published in New Mexico's ELR onboarding guide for MSH-21
+    def test_profile_matches_the_national_value(self):
+        # ONC ELR validation tool rule ELR-22, from the HL7 ELR R1 errata
         self.assertEqual(fld(*config.MESSAGE_PROFILE),
-                         "PHLabReport-NoAck^^2.16.840.1.114222.4.10.3^ISO")
+                         "PHLabReport-NoAck^^2.16.840.1.113883.9.11^ISO")
+
+    def test_reading_subcomponents(self):
+        p = parse("MSH|^~\\&#|A\rSPM|1|^CHL1&CHL&2.16.840.1.113883.19.4.11&ISO\r")
+        self.assertEqual(get(p, "SPM-2.2.3"), "2.16.840.1.113883.19.4.11")
+        self.assertEqual(get(p, "SPM-2.2.4"), "ISO")
 
 
 class TestStrictDates(unittest.TestCase):
@@ -74,6 +79,28 @@ class TestEndToEnd(unittest.TestCase):
             self.assertIn(get(p, "OBX-5.1"), config.REPORTABLE_RESULT_CODES)
             self.assertEqual(get(p, "ORC-21"), row["ordering_facility"])
 
+    def test_messages_declare_all_five_encoding_characters(self):
+        for msg in self.messages:
+            self.assertTrue(msg.startswith("MSH|^~\\&#|"))
+
+    def test_validator_catches_every_problem_the_onc_tool_found(self):
+        """Put each error from the first ONC validation back in, and check our validator sees it."""
+        good = next(m for m in self.messages if "NPI&" in m)
+        self.assertEqual(convert.validate_message(good, self.tables), [])
+        breakages = {
+            "ELR-22": good.replace("2.16.840.1.113883.9.11", "2.16.840.1.114222.4.10.3"),
+            "ELR-013": good.replace("MSH|^~\\&#|", "MSH|^~\\&|", 1),
+            "ELR-010": good.replace("^MA^", "^XX^"),
+            "ELR-004": good.replace("^2.16.840.1.113883.19.4.11^ISO", "^99D0000001^CLIA", 1),
+            "assigning authority": good.replace("NPI&2.16.840.1.113883.4.6&ISO", ""),
+            "SPM-18": "\r".join(seg.rsplit("|", 1)[0] if seg.startswith("SPM") else seg
+                                 for seg in good.split("\r")),
+            "truncation": good.replace("Bergstrom", "Bergstrom#"),
+        }
+        for label, broken in breakages.items():
+            with self.subTest(label):
+                self.assertNotEqual(convert.validate_message(broken, self.tables), [], label)
+
     def test_message_ids_are_unique(self):
         ids = [get(parse(m), "MSH-10") for m in self.messages]
         self.assertEqual(len(ids), len(set(ids)))
@@ -85,6 +112,7 @@ class TestEndToEnd(unittest.TestCase):
                          "derived from the LOINC test code")
         for sid in ["CHL", "RVC", "RRL"]:
             self.assertEqual(gaps.loc[(sid, "Race"), "status"], "NOT COLLECTED")
+            self.assertEqual(gaps.loc[(sid, "Specimen received date/time"), "status"], "OK")
 
 
 if __name__ == "__main__":

@@ -78,9 +78,13 @@ The tests run automatically on GitHub for every push.
 
 ## Limitations
 
-These are prototypes. The ELR messages follow the published structure but have
-not been tested with the NIST ELR validator or a state onboarding process, and
-state-specific rules are not yet applied. See each project's README for details.
+These are prototypes. A sample ELR message from the Central Hospital Laboratory
+source passes the ONC ELR validation tool (formerly hosted by NIST) in
+context-free mode with 0 errors. The first run found 19 errors, all now fixed;
+both reports are in [`docs/validation/`](docs/validation/). Messages from the
+other two sources have not been checked with the tool yet, nothing has been
+through a state onboarding process, and state-specific rules are not yet
+applied. See each project's README for details.
 
 ## License and notices
 

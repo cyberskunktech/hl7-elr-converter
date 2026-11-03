@@ -12,10 +12,16 @@ How HL7 v2 is laid out, in plain language:
 Because those characters have special meaning, real text that contains them
 (a clinic named "Health & Wellness") must be ESCAPED, or the receiver will
 split it in the wrong place. That is what esc() does.
+
+ELR also declares a fifth special character, # (the "truncation character",
+borrowed from HL7 version 2.7). A # at the very END of a value tells the
+receiver the value was cut short. Sources disagree on how to escape it, so
+the converter doesn't guess: its validator flags any value ending in #.
 """
 
 SEGMENT_END = "\r"
-ENCODING_CHARACTERS = "^~\\&"
+# ELR requires all five, including the truncation character (ONC rule ELR-013)
+ENCODING_CHARACTERS = "^~\\&#"
 
 _ESCAPES = [("\\", "\\E\\"), ("|", "\\F\\"), ("^", "\\S\\"), ("&", "\\T\\"), ("~", "\\R\\")]
 
@@ -88,14 +94,14 @@ def unescape(text):
 
 
 def get(parsed, location):
-    """Read a value like 'PID-5.1' (segment-field.component) from a parsed message."""
+    """Read a value like 'PID-5.1' or 'SPM-2.2.4' (segment-field.component.subcomponent)."""
     seg_name, rest = location.split("-")
-    field_no, _, comp_no = rest.partition(".")
+    numbers = [int(n) for n in rest.split(".")]
     for name, fields in parsed:
         if name == seg_name:
-            value = fields[int(field_no)] if int(field_no) < len(fields) else ""
-            if comp_no:
-                comps = value.split("^")
-                value = comps[int(comp_no) - 1] if int(comp_no) <= len(comps) else ""
+            value = fields[numbers[0]] if numbers[0] < len(fields) else ""
+            for depth, n in enumerate(numbers[1:]):
+                parts = value.split("^" if depth == 0 else "&")
+                value = parts[n - 1] if n <= len(parts) else ""
             return unescape(value)
     return ""
